@@ -17,7 +17,6 @@ namespace DonkeyKongGame
 
         private void GameOverForm_Load(object sender, EventArgs e)
         {
-            // 不做事也可以，先讓編譯過
         }
         private void BuildUI(bool isWin)
         {
@@ -25,7 +24,6 @@ namespace DonkeyKongGame
             this.WindowState = FormWindowState.Maximized;
             this.DoubleBuffered = true;
 
-            // 背景圖：win -> gameover2.png, lose -> gameover1.png
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string assetsDir = Path.Combine(baseDir, "assets");
 
@@ -38,8 +36,7 @@ namespace DonkeyKongGame
                 this.BackgroundImageLayout = ImageLayout.Stretch;
             }
 
-            // 兩顆按鈕
-            // 你可以照喜好調整位置與大小
+            // Buttons
             Button btnExit = CreateImageButton(
                 "btn_exit.png",
                 "btn_exit_hover.png",
@@ -105,7 +102,6 @@ namespace DonkeyKongGame
             btn.BackgroundImageLayout = ImageLayout.Stretch;
             btn.Cursor = Cursors.Hand;
 
-            // ⭐ Hover 切換
             btn.MouseEnter += (s, e) => btn.BackgroundImage = hoverImg;
             btn.MouseLeave += (s, e) => btn.BackgroundImage = normalImg;
 

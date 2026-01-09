@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices; // Required for Audio
-using System.Text;                    // Required for StringBuilder
+using System.Runtime.InteropServices;
+using System.Text;                    
 
 namespace DonkeyKongGame
 {
     public class Fireball
     {
-        // --- AUDIO SETUP START ---
+        // Audio setup
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string strCommand, StringBuilder strReturn, int iReturnLength, IntPtr hwndCallback);
 
@@ -17,14 +17,14 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "fireballAudio.mp3");
 
-            // 1. Close any previous instance
+            // Close any previous instance
             mciSendString("close FireballSFX", null, 0, IntPtr.Zero);
 
-            // 2. Open the file with a unique alias
+            // Open the file with a unique alias
             string commandOpen = $"open \"{sfxPath}\" type mpegvideo alias FireballSFX";
             mciSendString(commandOpen, null, 0, IntPtr.Zero);
 
-            // 3. Play
+            // Play
             string commandPlay = "play FireballSFX";
             mciSendString(commandPlay, null, 0, IntPtr.Zero);
         }
@@ -33,7 +33,6 @@ namespace DonkeyKongGame
         {
             mciSendString("close FireballSFX", null, 0, IntPtr.Zero);
         }
-        // --- AUDIO SETUP END ---
 
         private const float Speed = 12.0f;
         private const int FrameCount = 4;

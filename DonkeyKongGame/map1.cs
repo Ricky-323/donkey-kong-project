@@ -15,6 +15,7 @@ namespace DonkeyKongGame
 {
     public partial class map1 : Form
     {
+        // Death Cutscene Related
         List<Monster> _monsters = new List<Monster>();
         private void StartDeathCutscene()
         {
@@ -24,22 +25,18 @@ namespace DonkeyKongGame
             _deathState = DeathCutsceneState.PreDelay;
             _deathDelayFrames = DeathPreDelayFrames;
 
-            // 鎖輸入，避免玩家最後一刻還能動
             goLeft = goRight = goUp = goDown = goJump = false;
             p2Left = p2Right = false;
 
-            // 清空武器，避免 cutscene 期間又扣血
             knives.Clear();
             bombs.Clear();
             fireballs.Clear();
 
-            // zoom 從正常開始
             _deathZoom = 1.0f;
         }
 
         private void RunDeathCutscene()
         {
-            // Zoom 慢慢拉近（以 player1 為中心）
             if (_deathZoom < DeathZoomTarget)
                 _deathZoom = Math.Min(DeathZoomTarget, _deathZoom + DeathZoomSpeed);
 
@@ -47,14 +44,12 @@ namespace DonkeyKongGame
             {
                 case DeathCutsceneState.PreDelay:
                     {
-                        // 這 1 秒先停住畫面（或你也可以讓 player2 idle）
                         player.Update(false, false, false, false, false);
                         player2.Update(false, false);
 
                         _deathDelayFrames--;
                         if (_deathDelayFrames <= 0)
                         {
-                            // ⭐ 1 秒後才開始播 player1 death（同時會播 WoodDeathAudio）
                             player.TriggerDeath();
                             _deathState = DeathCutsceneState.PlayDeathAnim;
                         }
@@ -66,8 +61,6 @@ namespace DonkeyKongGame
                         player.Update(false, false, false, false, false);
                         player2.Update(false, false);
 
-                        // 你 Player 裡如果有「死亡動畫完成」的 flag，這裡就等它
-                        // 假設你是 player.IsDeathFinished (若你沒有，我可以教你加)
                         if (player.IsDeathFinished)
                         {
                             _deathWaitFrames = DeathWaitFramesDefault;
@@ -92,24 +85,24 @@ namespace DonkeyKongGame
         }
 
 
-        // --- Death Cutscene (Player1) ---
+        // Death Cutscene
         private bool _deathCutsceneActive = false;
 
         private enum DeathCutsceneState
         {
-            PreDelay,        // 觸發死亡後先等 1 秒
-            PlayDeathAnim,   // 播放 death1~death6
-            WaitThenGameOver // 動畫播完後再等 1~2 秒
+            PreDelay,        
+            PlayDeathAnim,   
+            WaitThenGameOver 
         }
         private DeathCutsceneState _deathState;
 
         private int _deathDelayFrames = 0;
         private int _deathWaitFrames = 0;
 
-        private const int DeathPreDelayFrames = 60;  // 約 1 秒（60fps）
-        private const int DeathWaitFramesDefault = 90; // 約 1.5 秒
+        private const int DeathPreDelayFrames = 60;
+        private const int DeathWaitFramesDefault = 90;
 
-        // Zoom（以 player1 為中心）
+        // Zoom
         private float _deathZoom = 1.0f;
         private const float DeathZoomTarget = 5.0f;
         private const float DeathZoomSpeed = 0.1f;
@@ -120,7 +113,6 @@ namespace DonkeyKongGame
 
         private void SetVolume(string alias, int volume)
         {
-            // Ensure volume is within 0-1000 range
             if (volume < 0) volume = 0;
             if (volume > 1000) volume = 1000;
 
@@ -128,7 +120,7 @@ namespace DonkeyKongGame
             mciSendString(command, null, 0, IntPtr.Zero);
         }
 
-        // --- Win Cutscene ---
+        // Win Cutscene
         private bool _winCutsceneActive = false;
 
         private enum WinCutsceneState
@@ -140,7 +132,6 @@ namespace DonkeyKongGame
         private WinCutsceneState _winState;
         private int _winWaitFrames = 0;
 
-        // 1~2 秒緩衝（Timer=16ms，60fps）
         private const int WinWaitFramesDefault = 300;
 
         private void StartWinCutscene()
@@ -150,11 +141,9 @@ namespace DonkeyKongGame
             _winCutsceneActive = true;
             _winState = WinCutsceneState.MoveToPlayer2;
 
-            // 鎖輸入
             goLeft = goRight = goUp = goDown = goJump = false;
             p2Left = p2Right = false;
 
-            // 清空武器，避免 cutscene 期間又扣血/爆炸
             knives.Clear();
             bombs.Clear();
             fireballs.Clear();
@@ -167,7 +156,7 @@ namespace DonkeyKongGame
         {
             if (_fadeIn && _fadeAlpha < 120)
             {
-                _fadeAlpha += 4; // 越小越慢
+                _fadeAlpha += 4;
                 return;
             }
             else
@@ -175,27 +164,21 @@ namespace DonkeyKongGame
                 _fadeIn = false;
             }
 
-
-            // 一樣更新一下（但用 cutscene 的控制）
             switch (_winState)
             {
                 case WinCutsceneState.MoveToPlayer2:
                     {
-                        float targetX = player2.X; // 你說同一層，只要對 X
+                        float targetX = player2.X;
                         float dx = targetX - player.X;
 
                         bool moveLeft = dx < -4;
                         bool moveRight = dx > 4;
 
-                        // 讓 player1 用原本 Update 的走路+碰撞邏輯去靠近
                         player.Update(moveLeft, moveRight, false, false, false);
-
-                        // player2 不動（保持 idle）
                         player2.Update(false, false);
 
                         if (!moveLeft && !moveRight)
                         {
-                            // 到位：開始播動畫
                             player.TriggerAttack();
                             player2.TriggerDeath();
                             _winState = WinCutsceneState.PlayAttackAndDeath;
@@ -205,7 +188,6 @@ namespace DonkeyKongGame
 
                 case WinCutsceneState.PlayAttackAndDeath:
                     {
-                        // 不要讓玩家亂動，專心播動畫
                         player.Update(false, false, false, false, false);
                         player2.Update(false, false);
 
@@ -232,30 +214,25 @@ namespace DonkeyKongGame
             }
         }
 
-
         private void EndGame(bool isWin)
         {
             if (_gameEnded) return;
             _gameEnded = true;
 
             gameTimer.Stop();
-            StopMusic(); // map1 有音樂 :contentReference[oaicite:3]{index=3}
+            StopMusic();
 
             using (var go = new GameOverForm(isWin))
             {
                 this.Hide();
-                go.ShowDialog();   // 等玩家按鈕
+                go.ShowDialog();
             }
-
-            // Back to Menu：關掉 map1，Form1 那邊會 FormClosed -> Show() + PlayMusic()
-            //（你 Form1 已經寫好了 mapForm.FormClosed 回主選單）:contentReference[oaicite:4]{index=4}
             this.Close();
         }
 
-
         private bool _gameEnded = false;
 
-        // --- AUDIO SETUP START ---
+        // Audio Setup
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string strCommand, StringBuilder strReturn, int iReturnLength, IntPtr hwndCallback);
 
@@ -281,25 +258,19 @@ namespace DonkeyKongGame
             mciSendString(commandStop, null, 0, IntPtr.Zero);
         }
 
-        // --- NEW: Explosion Sound Logic ---
         private void PlayExplosionSound()
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = System.IO.Path.Combine(baseDir, "assets", "explosionAudio.mp3");
 
-            // 1. Close the previous explosion alias (if any) so we can replay it immediately
             mciSendString("close ExplosionSFX", null, 0, IntPtr.Zero);
 
-            // 2. Open the file
-            // Note: We use a different alias "ExplosionSFX" so it doesn't mess with "Map1Music"
             string commandOpen = $"open \"{sfxPath}\" type mpegvideo alias ExplosionSFX";
             mciSendString(commandOpen, null, 0, IntPtr.Zero);
 
-            // 3. Play once (no 'repeat')
             string commandPlay = "play ExplosionSFX";
             mciSendString(commandPlay, null, 0, IntPtr.Zero);
         }
-        // --- AUDIO SETUP END ---
 
         private bool _isPaused = false;
         private Image _exitBtnImg;
@@ -319,20 +290,13 @@ namespace DonkeyKongGame
         private Rectangle? _appleRect = null;
         private bool _gameWon = false;
 
-        // Input State
+        // -----------------------------------------------------------------
 
-        // Player1
         bool goLeft, goRight, goUp, goDown, goJump;
-        // Player2
         bool p2Left, p2Right;
 
-        // Knife List
         List<Knife> knives = new List<Knife>();
-
-        // Bomb List
         List<Bomb> bombs = new List<Bomb>();
-
-        // Fireball List
         List<Fireball> fireballs = new List<Fireball>();
 
         public map1()
@@ -340,52 +304,38 @@ namespace DonkeyKongGame
             InitializeComponent();
 
             this.FormBorderStyle = FormBorderStyle.None;
-
-            // 1. Fix Flickering
             this.DoubleBuffered = true;
 
-            // 2. ENABLE SCROLLING
-            // Since 1920x1056 is larger than many screens, we allow scrolling.
-            // this.AutoScroll = true;
-            // this.AutoScrollMinSize = new Size(1920, 1080);
-            // Monster 1: Bottom Floor (Left side)
             _monsters.Add(new Monster(800, 242 - 52, 700, 1150));
             _monsters.Add(new Monster(1200, 1008 - 52, 300, 1700));
-
-            // Monster 3: Middle Platform Left (Floor Y is 720)
             _monsters.Add(new Monster(300, 817 - 52, 150, 700));
-
-            // Monster 4: Middle Platform Right (Floor Y is 672)
             _monsters.Add(new Monster(1500, 722 - 52, 1400, 1700));
-
-            // Monster 5: High Platform (Floor Y is 480)
             _monsters.Add(new Monster(900, 625 - 52, 700, 1200));
+
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string exitPath = Path.Combine(baseDir, "assets", "btn_exit.png");
             string exitHoverPath = Path.Combine(baseDir, "assets", "btn_exit_hover.png");
 
+            // Load Exit Button Images
             if (File.Exists(exitPath)) _exitBtnImg = Image.FromFile(exitPath);
-            else _exitBtnImg = new Bitmap(270, 90); // Fallback size
+            else _exitBtnImg = new Bitmap(270, 90);
 
             if (File.Exists(exitHoverPath)) _exitBtnHoverImg = Image.FromFile(exitHoverPath);
             else _exitBtnHoverImg = _exitBtnImg;
 
-
-            // Optional: Try to make the window as large as possible
             this.WindowState = FormWindowState.Maximized;
 
-            // 3. Initialize Map
             mapManager.InitializeMap(LevelId.Map1);
             _appleRect = mapManager.GetAppleBounds();
 
-            // 2. Initialize Player (Pass mapManager for collision)
+            // Initialize Player (Pass mapManager for collision)
             player = new Player(mapManager);
             player2 = new Player2(mapManager);
             healthBar = new HealthBar();
 
-            // 3. Setup Game Loop
+            // Setup Game Loop
             gameTimer = new Timer();
-            gameTimer.Interval = 16; // Approx 60 FPS
+            gameTimer.Interval = 16;
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
@@ -394,47 +344,33 @@ namespace DonkeyKongGame
 
         private void map1_Load(object sender, EventArgs e)
         {
-            //this.FormBorderStyle = FormBorderStyle.None;
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            // Adjust the drawing based on the Scroll Position
-            // Matrix originalTransform = e.Graphics.Transform;
-            // e.Graphics.TranslateTransform(this.AutoScrollPosition.X, this.AutoScrollPosition.Y);
 
             Matrix originalTransform = e.Graphics.Transform;
 
             if (_deathCutsceneActive)
             {
-                // 螢幕中心（畫面中央）
                 float centerX = this.ClientSize.Width / 2f;
                 float centerY = this.ClientSize.Height / 2f;
 
-                // player1 的中心（世界座標）
                 float px = player.X + Player.Width / 2f;
                 float py = player.Y + Player.Height / 2f;
 
-                // 1) 把「螢幕原點」搬到螢幕中心
                 e.Graphics.TranslateTransform(centerX, centerY);
-
-                // 2) 以螢幕中心做縮放（鏡頭拉近）
                 e.Graphics.ScaleTransform(_deathZoom, _deathZoom);
-
-                // 3) 把世界平移，讓 player1 的中心點剛好對準螢幕中心
                 e.Graphics.TranslateTransform(-px, -py);
             }
             else
             {
-                // 平常狀態：沿用你的卷軸世界
                 e.Graphics.TranslateTransform(this.AutoScrollPosition.X, this.AutoScrollPosition.Y);
             }
 
-
-
             mapManager.DrawMap(e.Graphics);
 
-            // Draw knives (在玩家前/後都可以，你想「在玩家前」就放這裡)
+            // Draw knives
             foreach (var k in knives)
                 k.Draw(e.Graphics);
 
@@ -520,14 +456,14 @@ namespace DonkeyKongGame
             // Update Health Bar
             healthBar.Update();
 
-            // --- Death Check ---
+            // Death Check
             if (healthBar.IsDead && !_deathCutsceneActive)
             {
                 StartDeathCutscene();
                 return;
             }
 
-            // --- Win Check ---
+            // Win Check
             if (!_gameWon && _appleRect.HasValue)
             {
                 if (playerRect.IntersectsWith(_appleRect.Value))
@@ -543,15 +479,14 @@ namespace DonkeyKongGame
             {
                 m.Update();
 
-                // Optional: Simple Collision Check (Player hits Monster)
                 if (m.GetBounds().IntersectsWith(player.GetBoundsPublic()))
                 {
                     m.TriggerAttack();
-                    // Trigger hurt logic if they touch
                     healthBar.TakeDamage();
                     player.TriggerHurt(m.X + Monster.Width / 2);
                 }
             }
+
             // Update knives
             for (int i = knives.Count - 1; i >= 0; i--)
             {
@@ -574,11 +509,11 @@ namespace DonkeyKongGame
             for (int i = fireballs.Count - 1; i >= 0; i--)
             {
                 fireballs[i].Update();
-                if (fireballs[i].IsOffScreen(1920)) // 你地圖寬 1920
+                if (fireballs[i].IsOffScreen(1920))
                     fireballs.RemoveAt(i);
             }
 
-            // --- Collision: Player2 weapons hit Player1 ---
+            // Collision Detection
 
             // Knife hit
             for (int i = knives.Count - 1; i >= 0; i--)
@@ -588,7 +523,7 @@ namespace DonkeyKongGame
                     healthBar.TakeDamage();
                     player.TriggerHurt();
                     knives.RemoveAt(i);
-                    break; // 這一幀只扣一次血（避免同時多個武器連扣）
+                    break;
                 }
             }
 
@@ -600,10 +535,8 @@ namespace DonkeyKongGame
                     healthBar.TakeDamage();
                     player.TriggerHurt();
 
-                    // 1. Trigger Animation
                     bombs[i].Explode();
 
-                    // 2. TRIGGER AUDIO HERE
                     PlayExplosionSound();
                 }
             }
@@ -640,7 +573,7 @@ namespace DonkeyKongGame
             }
         }
 
-        // --- Handle Mouse Click (Exit) ---
+        // Mouse Click Handling
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
@@ -649,13 +582,10 @@ namespace DonkeyKongGame
             {
                 if (_exitBtnRect.Contains(e.Location))
                 {
-                    this.Close(); // Return to Menu
+                    this.Close();
                 }
             }
         }
-
-
-
 
         protected override void OnKeyDown(KeyEventArgs e)
         {

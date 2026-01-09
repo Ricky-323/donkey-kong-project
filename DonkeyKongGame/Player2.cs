@@ -24,7 +24,7 @@ namespace DonkeyKongGame
 
         // --- Weapon Cooldown ---
         private int _weaponCooldownTimer = 0;
-        private const int WeaponCooldownFrames = 40; // 約 1 秒（Timer Interval = 16ms）
+        private const int WeaponCooldownFrames = 40;
 
         public bool CanFireWeapon => _weaponCooldownTimer <= 0;
 
@@ -79,7 +79,6 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "steamDeathAudio.mp3");
 
-            // 確保可以重播（但只播一次，下面有防呆）
             mciSendString("close SteamDeathSFX", null, 0, IntPtr.Zero);
 
             string openCmd = $"open \"{sfxPath}\" type mpegvideo alias SteamDeathSFX";
@@ -93,9 +92,8 @@ namespace DonkeyKongGame
         {
             _map = map;
 
-            // 先用跟 Player1 一樣的起點，再做一點偏移，避免重疊
-            Point start = _map.GetStartPosition();  // MapManager 已有這個方法 :contentReference[oaicite:2]{index=2}
-            X = start.X + 100;   // 往右偏移 100px，你想改成 200 也行
+            Point start = _map.GetStartPosition();
+            X = start.X + 100;
             Y = start.Y - 943;
 
             LoadImage();
@@ -117,7 +115,6 @@ namespace DonkeyKongGame
                 }
                 else
                 {
-                    // fallback：紅色方塊，方便 debug
                     Bitmap bmp = new Bitmap(Width, Height);
                     using (Graphics g = Graphics.FromImage(bmp))
                         g.Clear(Color.Red);
@@ -171,7 +168,6 @@ namespace DonkeyKongGame
                 }
                 else
                 {
-                    // fallback：藍色方塊
                     Bitmap bmp = new Bitmap(Width, Height);
                     using (Graphics g = Graphics.FromImage(bmp)) g.Clear(Color.Blue);
                     _runFrames[i] = bmp;
@@ -198,8 +194,6 @@ namespace DonkeyKongGame
         {
             if (_attackFrames == null || _attackFrames.Length == 0) return;
 
-            // 如果正在攻擊，就不要每次按鍵都重置（看你要不要）
-            // 想要「連按就重新開始」：把 if 拿掉
             if (_isAttacking) return;
 
             _isAttacking = true;
@@ -211,7 +205,6 @@ namespace DonkeyKongGame
         {
             if (_attack2Frames == null || _attack2Frames.Length == 0) return;
 
-            // 如果正在播任一攻擊，就不重置（你想可改成可打斷）
             if (_isAttacking || _isAttacking2) return;
 
             _isAttacking2 = true;
@@ -256,9 +249,6 @@ namespace DonkeyKongGame
             if (left) _facingRight = false;
             if (right) _facingRight = true;
 
-            // 你可以選擇：攻擊時不能移動
-            // if (_isAttacking) dx = 0;
-
             // --- Move and Collision ---
             X += dx;
 
@@ -281,8 +271,6 @@ namespace DonkeyKongGame
                         _isAttacking2 = false;
                     }
                 }
-
-                // 攻擊時不要推進 idle/run
                 _idleFrameIndex = 0;
                 _runFrameIndex = 0;
                 return;
@@ -319,7 +307,7 @@ namespace DonkeyKongGame
             if (isMoving)
             {
                 _idleFrameIndex = 0;
-                _animTimer = 0; // 可選：避免 idle timer 累積造成回到 idle 時跳帧
+                _animTimer = 0;
 
                 _runTimer++;
                 if (_runTimer >= RunAnimSpeed)
@@ -332,7 +320,7 @@ namespace DonkeyKongGame
             else
             {
                 _runFrameIndex = 0;
-                _runTimer = 0; // 可選：停下就從 run1 開始
+                _runTimer = 0;
 
                 // --- Idle Animation (only when not moving) ---
                 _animTimer++;

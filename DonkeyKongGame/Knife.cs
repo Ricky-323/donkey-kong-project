@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices; // Required for Audio
-using System.Text;                    // Required for StringBuilder
+using System.Runtime.InteropServices;
+using System.Text;                    
 
 namespace DonkeyKongGame
 {
     public class Knife
     {
-        // --- AUDIO SETUP START ---
+        // Audio setup
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string strCommand, StringBuilder strReturn, int iReturnLength, IntPtr hwndCallback);
 
@@ -17,14 +17,11 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "knifeAudio.mp3");
 
-            // 1. Close any previous instance (allows rapid fire)
             mciSendString("close KnifeSFX", null, 0, IntPtr.Zero);
 
-            // 2. Open the file
             string commandOpen = $"open \"{sfxPath}\" type mpegvideo alias KnifeSFX";
             mciSendString(commandOpen, null, 0, IntPtr.Zero);
 
-            // 3. Play
             string commandPlay = "play KnifeSFX";
             mciSendString(commandPlay, null, 0, IntPtr.Zero);
         }
@@ -33,7 +30,7 @@ namespace DonkeyKongGame
         {
             mciSendString("close KnifeSFX", null, 0, IntPtr.Zero);
         }
-        // --- AUDIO SETUP END ---
+        // -----------------------------------------------------------------
 
         private const float Gravity = 0.5f;
         private float _vy = 0;

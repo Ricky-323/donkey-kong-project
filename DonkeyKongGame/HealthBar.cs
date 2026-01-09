@@ -6,7 +6,6 @@ namespace DonkeyKongGame
 {
     public class HealthBar
     {
-        // --- Main Bar Variables ---
         private Image[] _frames;
         private int _currentFrameIndex;
         private int _targetFrameIndex;
@@ -17,14 +16,11 @@ namespace DonkeyKongGame
         private int _originalHeight;
         private const float BarScale = 0.5f;
 
-        // --- NEW: Reserve Health Variables ---
         private Image _heartFull;
         private Image _heartBorder;
         private int _lives;
         public bool IsDead { get; private set; } = false;
 
-
-        // *** CHANGE 1: Set MaxLives to 2 ***
         private const int MaxLives = 2;
         private const float HeartScale = 2.0f;
 
@@ -36,8 +32,6 @@ namespace DonkeyKongGame
             _currentFrameIndex = 56;
             _currentState = 2;
             _isAnimating = false;
-
-            // *** CHANGE 2: Initialize lives to 2 ***
             _lives = 2;
         }
 
@@ -46,7 +40,7 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string hpDir = Path.Combine(baseDir, "HP_frames");
 
-            // 1. Load Main Health Bar Frames
+            // Health Bar Frames
             _frames = new Image[56];
             if (Directory.Exists(hpDir))
             {
@@ -70,7 +64,7 @@ namespace DonkeyKongGame
                 _originalHeight = _frames[0].Height;
             }
 
-            // 2. Load Heart Images
+            // Heart Images
             string heartPath = Path.Combine(hpDir, "heart.png");
             string borderPath = Path.Combine(hpDir, "noheart.png");
 
@@ -92,13 +86,13 @@ namespace DonkeyKongGame
         {
             if (_isAnimating) return;
 
-            if (_currentState == 2) // Full -> Half
+            if (_currentState == 2) // Full to Half
             {
                 _targetFrameIndex = 26;
                 _currentState = 1;
                 _isAnimating = true;
             }
-            else if (_currentState == 1) // Half -> Empty
+            else if (_currentState == 1) // Half to Empty
             {
                 _targetFrameIndex = 1;
                 _currentState = 0;
@@ -118,7 +112,7 @@ namespace DonkeyKongGame
                 {
                     _isAnimating = false;
 
-                    // Check if we died (Empty) and have Lives
+                    // Check if died
                     if (_currentState == 0)
                     {
                         if (_lives > 0)
@@ -127,7 +121,6 @@ namespace DonkeyKongGame
                         }
                         else
                         {
-                            // Game Over logic
                             IsDead = true;
                         }
                     }
@@ -139,20 +132,19 @@ namespace DonkeyKongGame
         {
             _lives--;
 
-            // Refill the Main Bar immediately
+            // Reset Health Bar to Full
             _currentState = 2;
             _currentFrameIndex = 56;
         }
 
         public void Draw(Graphics g, int clientHeight)
         {
-            // --- 1. Draw Main Health Bar ---
+
             Image img = _frames[_currentFrameIndex - 1];
 
             int barW = (int)(_originalWidth * BarScale);
             int barH = (int)(_originalHeight * BarScale);
             int barX = 10;
-            // Position at bottom left
             int barY = clientHeight - 150;
 
             if (img != null)
@@ -160,7 +152,6 @@ namespace DonkeyKongGame
                 g.DrawImage(img, barX, barY, barW, barH);
             }
 
-            // --- 2. Draw Reserve Hearts ---
             int heartSize = 32;
             int heartSpacing = 36;
             int startHeartX = 10;

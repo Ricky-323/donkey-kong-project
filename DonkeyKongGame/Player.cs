@@ -33,7 +33,6 @@ namespace DonkeyKongGame
         // --- Death State ---
         private bool _isDead = false;
 
-        // --- NEW: Hurt Animation Phases ---
         // 0 = Not Hurt
         // 1 = Flash 1 (Hurt Sprite)
         // 2 = Gap (Normal Sprite, but input locked)
@@ -42,17 +41,17 @@ namespace DonkeyKongGame
         private int _hurtTimer = 0;
 
         // Duration configuration (in frames, approx 16ms per frame)
-        private const int PhaseDuration_Flash = 15; // ~0.25 seconds
-        private const int PhaseDuration_Gap = 10;   // ~0.15 seconds
+        private const int PhaseDuration_Flash = 15;
+        private const int PhaseDuration_Gap = 10;
 
-        // --- ANIMATION VARIABLES ---
+        // Animations
 
         // Climb
-        private Image _playerImage;        // Idle/Jump sprite
-        private Image[] _climbFrames;      // Array for climb1.png - climb6.png
-        private int _climbFrameIndex = 0;  // Current frame (0-5)
-        private int _animTimer = 0;        // Timer to control speed
-        private const int AnimSpeed = 5;   // Higher = Slower animation (Update ticks per frame)
+        private Image _playerImage;
+        private Image[] _climbFrames;
+        private int _climbFrameIndex = 0;
+        private int _animTimer = 0;
+        private const int AnimSpeed = 5;
 
         // Run
         private Image[] _runFrames;
@@ -80,7 +79,7 @@ namespace DonkeyKongGame
         private Image[] _attackFrames;
         private int _attackFrameIndex = 0;
         private int _attackTimer = 0;
-        private const int AttackAnimSpeed = 4; // 可調：越小越快
+        private const int AttackAnimSpeed = 4;
         private bool _isAttacking = false;
         private bool _attackAnimFinished = false;
         public bool IsAttackFinished => _attackAnimFinished;
@@ -95,7 +94,6 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "woodDeathAudio.mp3");
 
-            // 讓它能重播（但 TriggerDeath 只會觸發一次，所以也不會一直播）
             mciSendString("close WoodDeathSFX", null, 0, IntPtr.Zero);
 
             string openCmd = $"open \"{sfxPath}\" type mpegvideo alias WoodDeathSFX";
@@ -270,7 +268,6 @@ namespace DonkeyKongGame
         {
             float vx = 0;
 
-            // --- CHECK 1: Are we bouncing? ---
             if (Math.Abs(_knockbackX) > 0.5f)
             {
                 // Apply bounce force
@@ -279,7 +276,6 @@ namespace DonkeyKongGame
                 // Slow down the bounce (Friction)
                 _knockbackX *= 0.9f;
             }
-            // --- CHECK 2: Only allow keys if NOT bouncing ---
             else
             {
                 // Normal Movement
@@ -289,7 +285,8 @@ namespace DonkeyKongGame
 
             // Apply Velocity to Position
             X += vx;
-            // --- DEATH LOGIC (highest priority) ---
+
+            // Death Logic (highest priority)
             if (_isDead)
             {
                 if (!_deathAnimFinished)
@@ -310,7 +307,7 @@ namespace DonkeyKongGame
                 return;
             }
 
-            // --- ATTACK LOGIC (cutscene priority) ---
+            // Attack Logic (second highest priority)
             if (_isAttacking)
             {
                 _attackTimer++;
@@ -326,14 +323,9 @@ namespace DonkeyKongGame
                         _attackAnimFinished = true;
                     }
                 }
-                return; // 攻擊時不走動、不受輸入影響
+                return;
             }
 
-
-            // -------------------------
-            // HURT PHASE (input lock + flashing)
-            // Phase: 0=normal, 1=flash, 2=gap, 3=flash
-            // -------------------------
             bool inputLocked = false;
 
             if (_hurtPhase != 0)
@@ -500,29 +492,18 @@ namespace DonkeyKongGame
 
         private void CheckHorizontalCollision(float dx)
         {
-            // Create a temporary rectangle strictly for checking WALLS.
-            // We shrink it vertically (Y + 2, Height - 4) to avoid detecting 
-            // the floor or ceiling as a horizontal obstacle.
             Rectangle collisionRect = new Rectangle((int)X, (int)Y + 2, Width, Height - 4);
 
             if (IsTouchingTile(collisionRect, 1, 0))
             {
                 if (dx > 0) // Moving Right
                 {
-                    // Snap to the LEFT edge of the wall we hit
-                    // (Right side of player / 48) gives the wall index
                     int wallCol = (int)Math.Floor((X + Width) / 48.0);
-
-                    // Place player just to the left of that wall
                     X = (wallCol * 48) - Width - 0.1f;
                 }
                 else if (dx < 0) // Moving Left
                 {
-                    // Snap to the RIGHT edge of the wall we hit
-                    // (Left side of player / 48) gives the wall index
                     int wallCol = (int)Math.Floor(X / 48.0);
-
-                    // Place player just to the right of that wall
                     X = (wallCol * 48) + 48 + 0.1f;
                 }
             }
@@ -539,36 +520,27 @@ namespace DonkeyKongGame
                 // 1. FALLING DOWN
                 if (_vy > 0)
                 {
-                    // Calculate where the feet are
                     float feetY = Y + Height;
 
-                    // Calculate which tile row the feet are hitting
                     float tileRow = (float)Math.Floor(feetY / 48.0);
 
-                    // Snap the player so the feet sit exactly on top of that tile
-                    // Logic: Tile Top - Player Height = New Player Y
                     Y = (tileRow * 48) - Height;
 
                     _onGround = true;
                     _vy = 0;
                 }
 
-                // 2. JUMPING UP (Block Removed)
-                // The "else if (_vy < 0)" block is deleted to allow jumping through platforms.
             }
         }
 
-        // Helper: Check if player rectangle intersects a specific tile ID on a specific layer
         private bool CheckCollisionWithTile(Rectangle rect, int targetId, int layerIdx)
         {
-            // Check 4 corners
             return IsTileAt(rect.Left, rect.Top, targetId, layerIdx) ||
                    IsTileAt(rect.Right, rect.Top, targetId, layerIdx) ||
                    IsTileAt(rect.Left, rect.Bottom, targetId, layerIdx) ||
                    IsTileAt(rect.Right, rect.Bottom, targetId, layerIdx);
         }
 
-        // Helper generic collision
         private bool IsTouchingTile(Rectangle rect, int targetId, int layerIdx)
         {
             int leftTile = rect.Left / 48;
@@ -618,7 +590,6 @@ namespace DonkeyKongGame
             if (_isAttacking && _attackFrames != null && _attackFrames.Length > 0)
             {
                 Image img = _attackFrames[_attackFrameIndex];
-                // 依照 facingRight 翻轉（沿用你下面的翻轉邏輯）
                 if (_facingRight)
                     g.DrawImage(img, X, Y, Width, Height);
                 else
@@ -635,10 +606,6 @@ namespace DonkeyKongGame
 
             Image imgToDraw = null;
 
-            // -------------------------
-            // HURT OVERRIDE (highest priority)
-            // show hurt sprite on phase 1 and 3 (flash phases)
-            // -------------------------
             bool showHurtSprite = (_hurtPhase == 1 || _hurtPhase == 3);
             if (showHurtSprite && _hurtImage != null)
             {
@@ -722,15 +689,12 @@ namespace DonkeyKongGame
             _vy = -6; // 1. Vertical Hop (Bounce up)
 
             // 2. Horizontal Bounce
-            // If damageSourceX is equal to my X (e.g. spikes), don't bounce horizontally
             if (Math.Abs(damageSourceX - X) < 1.0f)
             {
                 _knockbackX = 0;
             }
             else
             {
-                // If I am to the Left of the monster (<), bounce Left (-1)
-                // If I am to the Right of the monster (>), bounce Right (1)
                 float myCenterX = X + Width / 2;
                 float dir = (myCenterX < damageSourceX) ? -1 : 1;
 
@@ -746,7 +710,6 @@ namespace DonkeyKongGame
             _deathFrameIndex = 0;
             _deathTimer = 0;
 
-            // 停止所有動作
             _vy = 0;
 
             PlayWoodDeathSound();
@@ -767,7 +730,6 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "jumpAudio.mp3");
 
-            // 允許立刻重播（但起跳本來就只觸發一次）
             mciSendString("close JumpSFX", null, 0, IntPtr.Zero);
 
             string openCmd = $"open \"{sfxPath}\" type mpegvideo alias JumpSFX";
@@ -780,14 +742,11 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string sfxPath = Path.Combine(baseDir, "assets", "appleAudio.mp3");
 
-            // 1. Close previous instance to allow replay
             mciSendString("close AppleSFX", null, 0, IntPtr.Zero);
 
-            // 2. Open the file
             string commandOpen = $"open \"{sfxPath}\" type mpegvideo alias AppleSFX";
             mciSendString(commandOpen, null, 0, IntPtr.Zero);
 
-            // 3. Play
             string commandPlay = "play AppleSFX";
             mciSendString(commandPlay, null, 0, IntPtr.Zero);
         }

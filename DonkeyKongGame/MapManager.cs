@@ -9,15 +9,12 @@ namespace DonkeyKongGame
 {
     public class MapManager
     {
-        // Dimensions
         public const int TileSize = 48;
         public const int MapCols = 40;
         public const int MapRows = 22;
 
-        // Base dir (usually ...\bin\Debug\ or ...\bin\Release\)
         private readonly string _baseDir;
 
-        // Paths (relative to base dir)
         private readonly string _csvDirectory;
         private readonly string _tileDirectory;
 
@@ -30,7 +27,6 @@ namespace DonkeyKongGame
         {
             _baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // bin/Debug/outputCSV , bin/Debug/assets
             _csvDirectory = Path.Combine(_baseDir, "outputCSV");
             _tileDirectory = Path.Combine(_baseDir, "assets");
         }
@@ -39,10 +35,8 @@ namespace DonkeyKongGame
         {
             _mapLayers.Clear();
 
-            // 先依地圖載入「要用的圖」
             LoadAssets(level);
 
-            // 再依地圖載入「要用的 CSV layers」
             if (level == LevelId.Map1)
             {
                 AddLayer("map1_floor.csv");
@@ -77,7 +71,6 @@ namespace DonkeyKongGame
 
         private void LoadAssets(LevelId level)
         {
-            // 只要整體 assets/tile 路徑規則不變，這邊改檔名即可
             string bgFile;
             string floorFile;
             string ladderFile;
@@ -126,8 +119,6 @@ namespace DonkeyKongGame
             {
                 using (Image rawImg = Image.FromFile(bgPath))
                 {
-                    // 2. Create a new bitmap exactly the size of the screen (1920x1080)
-                    // This does the resizing "heavy lifting" right now, instead of during the game.
                     _backgroundImage = new Bitmap(1920, 1080);
                     using (Graphics g = Graphics.FromImage(_backgroundImage))
                     {
@@ -138,11 +129,9 @@ namespace DonkeyKongGame
             }
             else
             {
-                // Fallback if file missing
                 _backgroundImage = new Bitmap(1920, 1080);
             }
 
-            // 下面維持你原本載入 Image.FromFile 的方式即可
             _backgroundImage = Image.FromFile(Path.Combine(_tileDirectory, bgFile));
             _tileSet[1] = Image.FromFile(Path.Combine(_tileDirectory, floorFile));
             // _tileSet[2] = Image.FromFile(Path.Combine(_tileDirectory, woodFile));
@@ -178,13 +167,12 @@ namespace DonkeyKongGame
         {
             string fullPath = Path.Combine(_csvDirectory, csvFileName);
 
-            // ROBUST CHECK: Try both with and without .csv extension
             if (!File.Exists(fullPath))
             {
                 if (File.Exists(fullPath.Replace(".csv", "")))
-                    fullPath = fullPath.Replace(".csv", ""); // Found it without extension
+                    fullPath = fullPath.Replace(".csv", "");
                 else
-                    return; // File really doesn't exist
+                    return;
             }
 
             int[,] layerGrid = new int[MapRows, MapCols];
@@ -230,8 +218,6 @@ namespace DonkeyKongGame
             }
 
         }
-
-        // --- NEW HELPER METHODS FOR PLAYER ---
 
         // Returns the Tile ID at a specific grid coordinate on a specific layer
         public int GetTileID(int col, int row, int layerIndex)
@@ -282,7 +268,6 @@ namespace DonkeyKongGame
 
         public Rectangle? GetAppleBounds()
         {
-            // apple layer 在 InitializeMap 最後 AddLayer("map1_apple.csv");
             int appleLayerIndex = 5; // 0:floor 1:wood 2:brokeladder 3:ladder 4:vine 5:apple
 
             for (int r = 0; r < MapRows; r++)

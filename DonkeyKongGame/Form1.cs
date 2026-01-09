@@ -20,7 +20,7 @@ namespace DonkeyKongGame
         private Button _selectedMapButton = null;
         private readonly List<Button> _mapButtons = new List<Button>();
 
-        // --- 1. Music Player Setup ---
+        // Music playback
         [DllImport("winmm.dll")]
         private static extern long mciSendString(string strCommand, StringBuilder strReturn, int iReturnLength, IntPtr hwndCallback);
 
@@ -29,7 +29,6 @@ namespace DonkeyKongGame
             InitializeComponent();
             BuildMenuUI();
 
-            // --- 2. Start Music immediately ---
             PlayMusic();
         }
 
@@ -38,25 +37,22 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string musicPath = System.IO.Path.Combine(baseDir, "assets", "menuAudio.mp3");
 
-            // Ensure we close any previous instance before opening a new one
             StopMusic();
 
-            // "type mpegvideo" is the command driver for mp3
-            // We use quotes around the path in case there are spaces
             string commandOpen = $"open \"{musicPath}\" type mpegvideo alias MenuMusic";
             mciSendString(commandOpen, null, 0, IntPtr.Zero);
 
-            // "repeat" ensures it loops continuously
             string commandPlay = "play MenuMusic repeat";
             mciSendString(commandPlay, null, 0, IntPtr.Zero);
         }
 
         private void StopMusic()
         {
-            // Close the alias "MenuMusic" to stop playback completely
             string commandStop = "close MenuMusic";
             mciSendString(commandStop, null, 0, IntPtr.Zero);
         }
+
+        // -----------------------------------------------------------------
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -75,10 +71,10 @@ namespace DonkeyKongGame
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string imgPath = System.IO.Path.Combine(baseDir, "assets", "choose_your_map.png");
 
-            // Chose your map label
+            // label: Choose Your Map
             pbChooseMap = new PictureBox();
             pbChooseMap.Image = Image.FromFile(imgPath);
-            pbChooseMap.SizeMode = PictureBoxSizeMode.AutoSize; // 用圖片原尺寸
+            pbChooseMap.SizeMode = PictureBoxSizeMode.AutoSize;
             pbChooseMap.BackColor = Color.Transparent;
             pbChooseMap.Location = new Point(
                 (this.ClientSize.Width - pbChooseMap.Width) / 2,
@@ -86,7 +82,7 @@ namespace DonkeyKongGame
             );
             this.Controls.Add(pbChooseMap);
 
-            // --- Map buttons ---
+            // Map selection buttons
             Button btnMap1 = CreateMapSelectButton("map1.png", "map1_hover.png", new Point(530, 470), LevelId.Map1);
             Button btnMap2 = CreateMapSelectButton("map2.png", "map2_hover.png", new Point(800, 465), LevelId.Map2);
             Button btnMap3 = CreateMapSelectButton("map3.png", "map3_hover.png", new Point(1070, 470), LevelId.Map3);
@@ -99,7 +95,6 @@ namespace DonkeyKongGame
             _mapButtons.Add(btnMap2);
             _mapButtons.Add(btnMap3);
 
-            //（可選）預設選 Map1
             SelectMapButton(btnMap1);
             selection.Level = LevelId.Map1;
 
@@ -143,11 +138,7 @@ namespace DonkeyKongGame
         private void OpenSetting()
         {
             MessageBox.Show("Setting page 尚未建立");
-
-            //var f = new SettingForm();
-            //f.ShowDialog(); // 設定通常用 ShowDialog 比較合理
         }
-
 
         private Button CreateMapSelectButton(string imgNormal, string imgHover, Point location, LevelId level)
         {
@@ -173,14 +164,12 @@ namespace DonkeyKongGame
 
             btn.MouseEnter += (s, e) =>
             {
-                // hover 顯示 hover 圖（就算已選中也一樣是 hover 圖）
                 btn.BackgroundImage = hoverImg;
                 btn.Cursor = Cursors.Hand;
             };
 
             btn.MouseLeave += (s, e) =>
             {
-                // ✅ 關鍵：如果是「已選中」，離開也要維持 hover 圖
                 if (_selectedMapButton == btn)
                     btn.BackgroundImage = hoverImg;
                 else
@@ -191,14 +180,11 @@ namespace DonkeyKongGame
 
             btn.Click += (s, e) =>
             {
-                // 設定選中狀態
                 SelectMapButton(btn);
-
-                // 記錄選到哪一關
                 selection.Level = level;
             };
 
-            // 讓 SelectMapButton 能重設圖用：把圖片暫存到 Tag
+            // Store images in Tag for easy access
             btn.Tag = new Tuple<Image, Image>(normalImg, hoverImg);
 
             return btn;
@@ -218,12 +204,11 @@ namespace DonkeyKongGame
 
         private void StartGame()
         {
-            // --- 3. Stop Music when game starts ---
             StopMusic();
 
             Form mapForm;
 
-            // 依關卡選擇建立對應 Form
+            // Open selected map form
             switch (selection.Level)
             {
                 case LevelId.Map1:
@@ -243,9 +228,9 @@ namespace DonkeyKongGame
                     break;
             }
 
-            // 切換畫面：隱藏主選單 -> 關卡關閉後再回來
+
             this.Hide();
-            // --- 4. Resume Music when returning to menu ---
+
             mapForm.FormClosed += (s, e) =>
             {
                 if (this.IsDisposed) return;    
@@ -289,7 +274,6 @@ namespace DonkeyKongGame
             btn.BackColor = Color.Transparent;
             btn.TabStop = false;
 
-            // Make button background transparent
             btn.FlatAppearance.MouseOverBackColor = Color.Transparent;
             btn.FlatAppearance.MouseDownBackColor = Color.Transparent;
             btn.UseVisualStyleBackColor = false;
