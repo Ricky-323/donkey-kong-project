@@ -13,23 +13,8 @@ The goal of this project is not only to create a playable game, but also to demo
 It focuses on **clear system design**, **separation of responsibilities**, and **extensibility** for future content.
 
 This project is intended for:
-- Players who want to play the game
 - Developers who want to understand how a 2D game can be implemented using pure C# (WinForms)
 - Students who want to study game architecture, animation handling, and tile-based map systems
-
----
-
-## Story Context
-
-在人人歡慶的跨年夜，
-就讀成功大學資訊系大二的小明卻邀約不到女性朋友一起享受節慶氛圍，
-只好繼續埋首在視窗程式設計的專案中。
-
-做事到凌晨時分的小明越想越覺得自己很可悲，
-看著身旁同甘共苦的兄弟，
-只好委曲一下兄弟的香蕉了。
-
-一場護蕉之戰就此打響!
 
 ---
 
@@ -41,9 +26,9 @@ This project is intended for:
 
 ### Win Conditions
 - **Player 1 (小明)**  
-  - 勝利條件：在血條歸零前吃到兄弟的香蕉
+  - 勝利條件：在血條歸零前抵達目標旗幟
 - **Player 2 (小明兄弟)**  
-  - 勝利條件：在兄弟吃到我的香蕉前打死他
+  - 勝利條件：在Player 1抵達旗幟前用攻擊使他血條歸零
 
 ### Core Mechanics
 - Tile-based movement and collision
@@ -207,13 +192,11 @@ Audio playback is handled via **Windows `winmm.dll` (`mciSendString`)** to allow
 
 ## How to Run (currently unavailable)
 
-1. Open the solution file:
-`DonkeyKongGame.sln`
-2. Build the project using **Visual Studio**
-3. Run the application
-4. Select a map from the main menu to start the game
+1. Download the released file
+2. Unzip and execute the file.
 
 > Required resolution: Fullscreen (1920 × 1080)
+> Required screen ratio：100%
 
 ---
 
