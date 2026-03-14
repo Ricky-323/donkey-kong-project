@@ -205,7 +205,7 @@ Audio playback is handled via **Windows `winmm.dll` (`mciSendString`)** to allow
   
 ---
 
-## How to Run
+## How to Run (currently unavailable)
 
 1. Open the solution file:
 `DonkeyKongGame.sln`
@@ -226,7 +226,6 @@ Audio playback is handled via **Windows `winmm.dll` (`mciSendString`)** to allow
 - Expand the settings menu (audio, controls, graphics)
 
 ---
-
 ## Summary
 
 This project demonstrates how a **complete 2D game** can be built using **pure C# and WinForms**, including:
